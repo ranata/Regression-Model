@@ -1,0 +1,89 @@
+---
+output: html_document
+---
+# Regression Model Assignment - Analysis of impact of Automobile Transmission on Fuel efficiency
+
+## Executive Summary
+
+This assignment focusses on exploring and analysing the impact of Automobile Transmission on Fuel efficiency. Looking at a data set of a collection of cars, we wshall be exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). We will be  particularly interested in answering the following two questions:
+
+"Is an automatic or manual transmission better for MPG"
+"Quantify the MPG difference between automatic and manual transmissions"
+
+For this purpose, will be performing some Exploratory data analysis and then proceed to  a fit a regression model that best fits the data set and draw conclusion based on the models.
+
+## Data Analysis
+
+In this section we will load mtcars data set and convert transmission type to factor.
+
+```{r}
+data(mtcars)
+
+# Convert am from nymeric column to "Automatic/Manual" factor
+
+mtcars$cyl  <- factor(mtcars$cyl)
+mtcars$vs   <- factor(mtcars$vs)
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+mtcars$am   <- factor(mtcars$am,labels=c("Automatic","Manual"))
+
+```
+
+
+### Explore coorelation for mpg with other variables (Appendix - Fig A)
+
+Fig A suggests that mpg has strong corelation with cyl, disp, hp, drat, wt, vs and am. We will explore their interdependence and influence on the model using step function for selecting the best model.  
+
+### Understand impact of Transmission Type on MPG (Appendix Fig B)
+
+Fig B suggests that Manual transmissions have better MPG compared to Automatic Transmission.
+
+```{r}
+ampg <- mtcars[mtcars$am == "Automatic",]
+mmpg <- mtcars[mtcars$am == "Manual",]
+
+t.test(ampg$mpg, mmpg$mpg)
+```
+
+The mean difference in MPG between the Automatic and Manual Transimission is about 7.245. Also, the p-value above does not suggest that the mean difference in MPG between Automatic and Manual Transmission is significant ignoring coorelation between any of the other features (wt, hp, cylinder etc. We will however check the potential influence of other factors on the MPG in the next section.
+
+## Regression Model
+
+We will now fit a linear model for (uni variate) and best fit (multi variate) 
+
+```{r}
+
+unifit <- lm(mpg~am, data = mtcars)
+summary(unifit)
+
+
+```
+
+This model only explains about 34% variance (based on R^2 value) suggesting an influence of other factors as well. We will thus need to select the best variables. We will use AIC alogorithm to choose the best variables.
+
+```{r results="hide"}
+basefit <- lm(mpg ~ ., data = mtcars)
+bestfit <- step(basefit, direction = "both")
+```
+
+```{r}
+summary(bestfit)
+
+```
+The above model explains about 84% variance (based on R^2 value)  which is significantly higher than the previous model. It also suggest that based on the bestfit model, the mean MPG for Manual Transmission Cars is 1.8 MPG more than that for Automatic Transmission.
+
+## Appendix
+
+### Fig A
+
+```{r}
+pairs(mpg ~ ., data=mtcars, main = "Pair Plot for mtcars")
+```
+
+
+### Fig B
+
+```{r}
+boxplot(mpg ~ am, data = mtcars, col = (c("gold","darkgreen")), ylab = "Miles Per Gallon", xlab = "Transmission", notch = FALSE)
+```
+
